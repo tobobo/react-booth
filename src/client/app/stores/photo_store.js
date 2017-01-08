@@ -34,9 +34,7 @@ class PhotoStore extends EventEmitter {
   loadPhotos() {
     this.fetch('/api/photos/')
       .then(response => response.json())
-      .then((body) => {
-        Actions.receivePhotos(body);
-      })
+      .then((body) => { Actions.receivePhotos(body); })
       .catch();
   }
 }
