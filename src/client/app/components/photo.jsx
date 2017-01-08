@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default class Photo extends React.Component {
+class Photo extends React.Component {
   constructor(props) {
     super();
     this.state = { photo: props.photo };
@@ -21,3 +21,5 @@ Photo.propTypes = {
     file_name: React.PropTypes.string,
   }),
 };
+
+export default Photo;

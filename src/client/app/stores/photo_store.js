@@ -9,22 +9,28 @@ class PhotoStore extends EventEmitter {
     this.photos = [];
     this.fetch = fetch.bind(undefined);
   }
+
   getAll() {
     return this.photos;
   }
+
   setAll(photos) {
     this.photos = photos;
     this.emitChange();
   }
+
   emitChange() {
     this.emit('change');
   }
+
   addChangeListener(callback) {
     this.on('change', callback);
   }
+
   removeChangeListener(callback) {
     this.off('change', callback);
   }
+
   loadPhotos() {
     this.fetch('/api/photos/')
       .then(response => response.json())
