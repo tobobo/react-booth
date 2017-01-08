@@ -9,17 +9,21 @@ class App extends BaseComponent {
     super();
     this.state = { photos: photoStore.getAll() };
   }
+
   componentDidMount() {
     photoStore.addChangeListener(this.changeListener);
     this.actions.loadPhotos();
   }
+
   componentWillUnmount() {
     photoStore.removeChangeListener(this.changeListener);
   }
+
   onChange() {
     this.setState({ photos: photoStore.getAll().photos.reverse() });
     setTimeout(() => this.actions.loadPhotos(), 100);
   }
+
   render() {
     const headPhotos = this.state.photos.slice(0, 2);
     const tailPhotos = this.state.photos.slice(2, 26);
