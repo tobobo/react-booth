@@ -1,4 +1,4 @@
 **/.DS_Store
-**/*.js.map
+src/client/public
 photos
 node_modules
