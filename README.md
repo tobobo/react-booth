@@ -1,4 +1,4 @@
 # react-booth
 
-[ ] Trigger when camera shutter goes off
-[ ] Generate thumbnails
+Trigger when camera shutter goes off
+Generate thumbnails
