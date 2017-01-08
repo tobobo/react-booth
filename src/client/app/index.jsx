@@ -28,18 +28,18 @@ class App extends BaseComponent {
   }
 
   render() {
-    const headPhotos = this.state.photos.slice(0, NUM_LARGE_PHOTOS);
-    const tailPhotos = this.state.photos.slice(
+    const largePhotos = this.state.photos.slice(0, NUM_LARGE_PHOTOS);
+    const smallPhotos = this.state.photos.slice(
       NUM_LARGE_PHOTOS,
       NUM_LARGE_PHOTOS + NUM_SMALL_PHOTOS,
     );
     return (
       <div>
         <div>
-          {headPhotos.map(photo => <Photo photo={photo} key={photo.file_name} width={600} />)}
+          {largePhotos.map(photo => <Photo photo={photo} key={photo.file_name} width={600} />)}
         </div>
         <div>
-          {tailPhotos.map(photo => <Photo photo={photo} key={photo.file_name} width={300} />)}
+          {smallPhotos.map(photo => <Photo photo={photo} key={photo.file_name} width={300} />)}
         </div>
       </div>
     );
