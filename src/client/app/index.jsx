@@ -1,102 +1,39 @@
 import React from 'react';
-import {render} from 'react-dom';
-import {merge} from 'react-lib';
-import {Dispatcher} from 'flux';
-import {EventEmitter} from 'events';
-import 'whatwg-fetch';
+import { render } from 'react-dom';
+import photoStore from './stores/photo_store';
+import BaseComponent from './components/base';
+import Photo from './components/photo';
 
-const dispatcher = new Dispatcher({
-  logLevel: 'ALL'
-});
-
-class Actions {
-  static loadPhotos() {
-    dispatcher.dispatch({ actionType: 'LOAD_PHOTOS' });
-  }
-  static receivePhotos(photoBody) {
-    dispatcher.dispatch(Object.assign({ actionType: 'RECEIVE_PHOTOS' }, { photos: photoBody }))
-  }
-}
-
-class PhotoStore extends EventEmitter {
-  constructor() {
-    super();
-    this.photos = [];
-  }
-  getAll() {
-    return this.photos;
-  }
-  setAll(photos) {
-    this.photos = photos;
-    this.emitChange();
-  }
-  emitChange() {
-    this.emit('change');
-  }
-  addChangeListener(callback) {
-    this.on('change', callback);
-  }
-  removeChangeListener(callback) {
-    this.off('change', callback);
-  }
-  loadPhotos() {
-    fetch('/api/photos/')
-      .then(response => response.json())
-      .then(body => {
-        Actions.receivePhotos(body);
-      })
-      .catch();
-  }
-}
-
-const photoStore = new PhotoStore();
-
-photoStore.dispatchToken = dispatcher.register((payload) => {
-  switch (payload.actionType) {
-    case 'LOAD_PHOTOS':
-      photoStore.loadPhotos();
-      break;
-    case 'RECEIVE_PHOTOS':
-      photoStore.setAll(payload);
-      break;
-  }
-})
-
-class App extends React.Component {
+class App extends BaseComponent {
   constructor() {
     super();
     this.state = { photos: photoStore.getAll() };
   }
   componentDidMount() {
-    photoStore.addChangeListener(this._onChange.bind(this));
-    Actions.loadPhotos();
+    photoStore.addChangeListener(this.changeListener);
+    this.actions.loadPhotos();
   }
-  _onChange() {
+  componentWillUnmount() {
+    photoStore.removeChangeListener(this.changeListener);
+  }
+  onChange() {
     this.setState({ photos: photoStore.getAll().photos.reverse() });
-    setTimeout(() => Actions.loadPhotos(), 100);
+    setTimeout(() => this.actions.loadPhotos(), 100);
   }
   render() {
     const headPhotos = this.state.photos.slice(0, 2);
     const tailPhotos = this.state.photos.slice(2, 26);
     return (
       <div>
-        <p>
-          {headPhotos.map(function(photo, i) {
-            const fileName = `photos/${photo.file_name}`;
-            return (
-              <img width='600' src={fileName} key={fileName} />
-            );
-          })}
-        </p>
-        {tailPhotos.map(function(photo, i) {
-          const fileName = `photos/${photo.file_name}`;
-          return (
-            <img width='300' src={fileName} key={fileName} />
-          );
-        })}
+        <div>
+          {headPhotos.map(photo => <Photo photo={photo} key={photo.file_name} width={600} />)}
+        </div>
+        <div>
+          {tailPhotos.map(photo => <Photo photo={photo} key={photo.file_name} width={300} />)}
+        </div>
       </div>
     );
   }
 }
 
-render(<App/>, document.getElementById('app'));
+render(<App />, document.getElementById('app'));
