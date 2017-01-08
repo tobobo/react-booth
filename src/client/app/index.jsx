@@ -13,6 +13,9 @@ class Actions {
   static loadPhotos() {
     dispatcher.dispatch({ actionType: 'LOAD_PHOTOS' });
   }
+  static receivePhotos(photoBody) {
+    dispatcher.dispatch(Object.assign({ actionType: 'RECEIVE_PHOTOS' }, { photos: photoBody }))
+  }
 }
 
 class PhotoStore extends EventEmitter {
@@ -40,21 +43,20 @@ class PhotoStore extends EventEmitter {
     fetch('/api/photos/')
       .then(response => response.json())
       .then(body => {
-        console.log('body', body);
-        dispatcher.dispatch(Object.assign({ actionType: 'RECEIVE_PHOTOS' }, { photos: body }));
-      });
+        Actions.receivePhotos(body);
+      })
+      .catch();
   }
 }
 
 const photoStore = new PhotoStore();
+
 photoStore.dispatchToken = dispatcher.register((payload) => {
-  console.log('payload', payload);
   switch (payload.actionType) {
     case 'LOAD_PHOTOS':
       photoStore.loadPhotos();
       break;
     case 'RECEIVE_PHOTOS':
-      console.log('received');
       photoStore.setAll(payload);
       break;
   }
@@ -75,21 +77,21 @@ class App extends React.Component {
   }
   render() {
     const headPhotos = this.state.photos.slice(0, 2);
-    const tailPhotos = this.state.photos.slice(2);
+    const tailPhotos = this.state.photos.slice(2, 22);
     return (
       <div>
         <p>
           {headPhotos.map(function(photo, i) {
             const fileName = `photos/${photo.file_name}`;
             return (
-              <img width='600' src={fileName} key={i} />
+              <img width='600' src={fileName} key={fileName} />
             );
           })}
         </p>
         {tailPhotos.map(function(photo, i) {
           const fileName = `photos/${photo.file_name}`;
           return (
-            <img width='300' src={fileName} key={i} />
+            <img width='300' src={fileName} key={fileName} />
           );
         })}
       </div>

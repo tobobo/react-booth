@@ -87,6 +87,11 @@
 	    value: function loadPhotos() {
 	      dispatcher.dispatch({ actionType: 'LOAD_PHOTOS' });
 	    }
+	  }, {
+	    key: 'receivePhotos',
+	    value: function receivePhotos(photoBody) {
+	      dispatcher.dispatch(Object.assign({ actionType: 'RECEIVE_PHOTOS' }, { photos: photoBody }));
+	    }
 	  }]);
 	
 	  return Actions;
@@ -136,9 +141,8 @@
 	      fetch('/api/photos/').then(function (response) {
 	        return response.json();
 	      }).then(function (body) {
-	        console.log('body', body);
-	        dispatcher.dispatch(Object.assign({ actionType: 'RECEIVE_PHOTOS' }, { photos: body }));
-	      });
+	        Actions.receivePhotos(body);
+	      }).catch();
 	    }
 	  }]);
 	
@@ -146,14 +150,13 @@
 	}(_events.EventEmitter);
 	
 	var photoStore = new PhotoStore();
+	
 	photoStore.dispatchToken = dispatcher.register(function (payload) {
-	  console.log('payload', payload);
 	  switch (payload.actionType) {
 	    case 'LOAD_PHOTOS':
 	      photoStore.loadPhotos();
 	      break;
 	    case 'RECEIVE_PHOTOS':
-	      console.log('received');
 	      photoStore.setAll(payload);
 	      break;
 	  }
@@ -189,7 +192,7 @@
 	    key: 'render',
 	    value: function render() {
 	      var headPhotos = this.state.photos.slice(0, 2);
-	      var tailPhotos = this.state.photos.slice(2);
+	      var tailPhotos = this.state.photos.slice(2, 22);
 	      return _react2.default.createElement(
 	        'div',
 	        null,
@@ -198,12 +201,12 @@
 	          null,
 	          headPhotos.map(function (photo, i) {
 	            var fileName = 'photos/' + photo.file_name;
-	            return _react2.default.createElement('img', { width: '600', src: fileName, key: i });
+	            return _react2.default.createElement('img', { width: '600', src: fileName, key: fileName });
 	          })
 	        ),
 	        tailPhotos.map(function (photo, i) {
 	          var fileName = 'photos/' + photo.file_name;
-	          return _react2.default.createElement('img', { width: '300', src: fileName, key: i });
+	          return _react2.default.createElement('img', { width: '300', src: fileName, key: fileName });
 	        })
 	      );
 	    }
