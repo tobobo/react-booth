@@ -77,7 +77,7 @@ class App extends React.Component {
   }
   render() {
     const headPhotos = this.state.photos.slice(0, 2);
-    const tailPhotos = this.state.photos.slice(2, 22);
+    const tailPhotos = this.state.photos.slice(2, 26);
     return (
       <div>
         <p>
