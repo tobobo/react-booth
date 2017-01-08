@@ -5,10 +5,19 @@
     <style>
       .photo-button {
         background-color: transparent;
-        border: none;
-        margin: 0;
+        border: 3px solid transparent;
+        margin: 3px;
         padding: 0;
         display: inline;
+        outline: none;
+      }
+
+      .photo-button.selected {
+        border-color: green;
+      }
+
+      .selected-photos {
+        height: 300px;
       }
     </style>
   </head>

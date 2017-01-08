@@ -1,20 +1,27 @@
 import React from 'react';
+import BaseComponent from './base';
 
-class Photo extends React.Component {
+class Photo extends BaseComponent {
   constructor(props) {
     super();
-    this.state = { photo: props.photo };
+    this.selectable = props.selectable !== false;
+    this.state = {
+      photo: props.photo,
+      selected: false,
+    };
   }
 
   selectPhoto() {
-    console.log('photo', this.state.photo);
+    if (this.state.selected || !this.selectable) return;
+    this.actions.selectPhoto(this.state.photo);
+    this.setState({ selected: true });
   }
 
   render() {
     const fileName = this.state.photo.file_name;
     const filePath = `photos/${fileName}`;
     return (
-      <button onClick={this.selectPhoto.bind(this)} className="photo-button">
+      <button onMouseDown={this.selectPhoto.bind(this)} className={`photo-button ${this.state.selected ? 'selected' : ''}`}>
         <img width={this.props.width} alt={fileName} src={filePath} />
       </button>
     );

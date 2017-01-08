@@ -7,6 +7,7 @@ class PhotoStore extends EventEmitter {
   constructor() {
     super();
     this.photos = [];
+    this.selectedPhotos = [];
     this.fetch = fetch.bind(undefined);
   }
 
@@ -16,19 +17,40 @@ class PhotoStore extends EventEmitter {
 
   setAll(photos) {
     this.photos = photos;
-    this.emitChange();
+    this.emitPhotoChange();
   }
 
-  emitChange() {
-    this.emit('change');
+  getSelected() {
+    return this.selectedPhotos;
   }
 
-  addChangeListener(callback) {
-    this.on('change', callback);
+  addSelected(photo) {
+    this.selectedPhotos.unshift(photo);
+    this.emitSelectedPhotosChange();
   }
 
-  removeChangeListener(callback) {
-    this.off('change', callback);
+  emitPhotoChange() {
+    this.emit('photoChange');
+  }
+
+  emitSelectedPhotosChange() {
+    this.emit('selectedPhotosChange');
+  }
+
+  addPhotoChangeListener(callback) {
+    this.on('photoChange', callback);
+  }
+
+  removePhotoChangeListener(callback) {
+    this.off('photoChange', callback);
+  }
+
+  addSelectedPhotosChangeListener(callback) {
+    this.on('selectedPhotosChange', callback);
+  }
+
+  removeSelectedPhotosChangeListener(callback) {
+    this.off('selectedPhotosChange', callback);
   }
 
   loadPhotos() {
@@ -48,6 +70,9 @@ photoStore.dispatchToken = dispatcher.register((payload) => {
       break;
     case 'RECEIVE_PHOTOS':
       photoStore.setAll(payload);
+      break;
+    case 'SELECT_PHOTO':
+      photoStore.addSelected(payload.photo);
       break;
     default:
       break;

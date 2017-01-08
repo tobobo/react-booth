@@ -8,4 +8,8 @@ export default class Actions {
   static receivePhotos(photoBody) {
     dispatcher.dispatch(Object.assign({ actionType: 'RECEIVE_PHOTOS' }, { photos: photoBody }));
   }
+
+  static selectPhoto(photo) {
+    dispatcher.dispatch(Object.assign({ actionType: 'SELECT_PHOTO' }, { photo }));
+  }
 }
