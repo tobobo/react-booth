@@ -4,6 +4,9 @@ import photoStore from './stores/photo_store';
 import BaseComponent from './components/base';
 import Photo from './components/photo';
 
+const NUM_LARGE_PHOTOS = 2;
+const NUM_SMALL_PHOTOS = 24;
+
 class App extends BaseComponent {
   constructor() {
     super();
@@ -25,8 +28,11 @@ class App extends BaseComponent {
   }
 
   render() {
-    const headPhotos = this.state.photos.slice(0, 2);
-    const tailPhotos = this.state.photos.slice(2, 26);
+    const headPhotos = this.state.photos.slice(0, NUM_LARGE_PHOTOS);
+    const tailPhotos = this.state.photos.slice(
+      NUM_LARGE_PHOTOS,
+      NUM_LARGE_PHOTOS + NUM_SMALL_PHOTOS,
+    );
     return (
       <div>
         <div>
