@@ -1,7 +1,9 @@
 {
   "extends": "airbnb",
   "globals": {
-    "fetch": true,
     "document": true
+  },
+  "rules": {
+    "react/jsx-no-bind": 0
   }
 }

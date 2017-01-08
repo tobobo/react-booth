@@ -6,11 +6,17 @@ class Photo extends React.Component {
     this.state = { photo: props.photo };
   }
 
+  selectPhoto() {
+    console.log('photo', this.state.photo);
+  }
+
   render() {
     const fileName = this.state.photo.file_name;
     const filePath = `photos/${fileName}`;
     return (
-      <img width={this.props.width} alt={fileName} src={filePath} key={fileName} />
+      <button onClick={this.selectPhoto.bind(this)} className="photo-button">
+        <img width={this.props.width} alt={fileName} src={filePath} />
+      </button>
     );
   }
 }
