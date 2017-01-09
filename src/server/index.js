@@ -40,17 +40,25 @@ function getPhotos() {
 
 getPhotos();
 
-gaze('*.JPG', { cwd: 'photos' }, (err, watcher) => {
+let convertingImages = [];
+
+gaze(['*.jpg', '*.JPG'], { cwd: 'photos' }, (err, watcher) => {
   watcher.on('added', (filePath) => {
     console.log('resizing', filePath);
-    im.resize({
-      srcPath: filePath,
-      dstPath: filePath.replace(PHOTO_DIR, `${PHOTO_DIR}/thumbs`),
-      quality: 0.8,
-      format: 'jpg',
-      width: 800,
-    }, (resizeErr) => {
-      if (resizeErr) console.log('resizing error', resizeErr);
+    const basename = path.basename(filePath);
+    convertingImages.push(basename);
+    im.convert([
+      filePath,
+      '-resize', '800x800',
+      '-level', '15%,65%,0.5',
+      '-modulate', '100,0',
+      filePath.replace(PHOTO_DIR, `${PHOTO_DIR}/thumbs`),
+    ], (convertErr) => {
+      convertingImages = convertingImages.reduce((memo, convertingImage) => {
+        if (basename !== convertingImage) memo.push(basename);
+        return memo;
+      }, []);
+      if (convertErr) console.log('resizing error', convertErr);
       console.log('resized', filePath);
     });
   });
@@ -71,8 +79,14 @@ app.use(`/${PHOTO_DIR}`, express.static(PHOTO_DIR));
 
 app.get('/api/photos/', (req, res) => {
   fs.readdir(`./${PHOTO_DIR}/thumbs`, (err, files) => {
-    const fileNameList = _.filter(files, fileName => fileName.match(/DSC/));
-    const fileList = _.map(fileNameList, fileName => ({ file_name: fileName }));
+    const fileNameList = files.filter(fileName => fileName.match(/DSC/));
+    const fileList = fileNameList
+      .reduce((memo, fileName) => {
+        const convertingFile = _.find(convertingImages, image => image.match(fileName));
+        if (!convertingFile) memo.push(fileName);
+        return memo;
+      }, [])
+      .map(fileName => ({ file_name: fileName }));
     res.json(fileList);
   });
 });
