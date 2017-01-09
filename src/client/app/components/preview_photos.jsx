@@ -3,7 +3,7 @@ import BaseComponent from './base';
 import Photo from './photo';
 
 const NUM_LARGE_PHOTOS = 0;
-const NUM_SMALL_PHOTOS = 12;
+const NUM_SMALL_PHOTOS = 48;
 
 export default class PreviewPhotos extends BaseComponent {
   constructor() {
