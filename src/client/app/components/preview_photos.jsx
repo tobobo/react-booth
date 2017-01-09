@@ -4,6 +4,8 @@ import Photo from './photo';
 
 const NUM_LARGE_PHOTOS = 0;
 const NUM_SMALL_PHOTOS = 48;
+const SMALL_WIDTH = 200;
+const LARGE_WIDTH = 600;
 
 export default class PreviewPhotos extends BaseComponent {
   constructor() {
@@ -63,14 +65,17 @@ export default class PreviewPhotos extends BaseComponent {
   render() {
     const photos = this.state.photos.slice(0, NUM_LARGE_PHOTOS + NUM_SMALL_PHOTOS);
     return (
-      <div>
+      <div className="preview-photos">
+        <p className="select-instructions">
+          Select up to {this.photoStore.maxSelectedPhotos} photos
+        </p>
         {
           photos.map((photo, i) =>
             <span key={photo.file_name}>
               <button onMouseDown={this.togglePhotoSelection.bind(this, photo)} className={`photo-button ${photo.selected ? 'selected' : ''}`}>
                 <Photo
                   photo={photo}
-                  width={i >= NUM_LARGE_PHOTOS ? 180 : 600}
+                  width={i >= NUM_LARGE_PHOTOS ? SMALL_WIDTH : LARGE_WIDTH}
                 />
               </button>
               <span>{i === NUM_LARGE_PHOTOS - 1 ? <br /> : ''}</span>

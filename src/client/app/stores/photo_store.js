@@ -10,6 +10,7 @@ class PhotoStore extends EventEmitter {
     super();
     this.photos = [];
     this.selectedPhotos = [];
+    this.maxSelectedPhotos = MAX_SELECTED_PHOTOS;
     this.apiAdapter = ApiAdapter;
     this.fetch = fetch.bind(undefined);
   }

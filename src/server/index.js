@@ -13,8 +13,10 @@ const printer = require('printer');
 
 const PHOTO_DIR = 'photos';
 const SERVER_PORT = 8000;
-const OPEN_PRINT = false;
-const PRINT_FILE = true;
+const OPEN_PREVIEW = true;
+const PRINT_FILE = false;
+
+const BOTTOM_TEXTS = ['¡wicked!', '2017', '1622', 'nice duds', 'many thanks', 'we <3 isaac'];
 
 const app = express();
 
@@ -108,7 +110,7 @@ app.post('/api/print', (req, res) => {
         _locals: {
           photoBase: `http://localhost:${SERVER_PORT}/${PHOTO_DIR}/thumbs/`,
           photos: req.body.photos,
-          bottomText: '¡wicked!',
+          bottomText: BOTTOM_TEXTS[Math.floor(Math.random() * BOTTOM_TEXTS.length)],
         },
       }, (err, html) => {
         if (err) {
@@ -124,7 +126,7 @@ app.post('/api/print', (req, res) => {
       const printPath = `prints/print_${Math.round(Date.now() / 1000)}.pdf`;
       return page.setContent(photoTemplate, 'localhost')
         .then(() => page.render(printPath))
-        .then(() => { if (OPEN_PRINT) exec(`open ${printPath}`); })
+        .then(() => { if (OPEN_PREVIEW) exec(`open ${printPath}`); })
         .then(() => { if (PRINT_FILE) printFile(printPath); })
         .then(() => res.json({ print_path: printPath }))
         .catch(console.log);

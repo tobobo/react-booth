@@ -49,7 +49,7 @@ class SelectedPhotos extends BaseComponent {
             />,
           )
         }
-        {this.state.printable ? <button onClick={this.printSelectedPhotos.bind(this)} className="print-button">Print 'em!</button> : ''}
+        {this.state.printable ? <button onClick={this.printSelectedPhotos.bind(this)} className="print-button">Print it!</button> : ''}
       </div>
     );
   }
