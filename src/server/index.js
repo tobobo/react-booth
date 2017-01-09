@@ -2,11 +2,29 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const spawn = require('child_process').spawn;
+const exec = require('child_process').exec;
+const phantom = require('phantom');
+const exphbs = require('express-handlebars');
+const path = require('path');
 const _ = require('lodash');
 
 const PHOTO_DIR = 'photos';
+const SERVER_PORT = 8000;
+const OPEN_PRINT = true;
 
 const app = express();
+
+const viewBase = path.join(__dirname, 'views');
+app.set('views', viewBase);
+app.engine('.hbs', exphbs({
+  defaultLayout: 'main',
+  extname: '.hbs',
+  layoutsDir: path.join(viewBase, 'layouts'),
+  partialsDir: path.join(viewBase, 'partials'),
+}));
+app.set('view engine', '.hbs');
+
+const getPhantom = _.memoize(() => phantom.create());
 
 function getPhotos() {
   const captureProcess = spawn('gphoto2', ['--capture-tethered'], {
@@ -32,8 +50,43 @@ app.get('/api/photos/', (req, res) => {
 });
 
 app.post('/api/print', (req, res) => {
-  console.log('photos', req.body.photos);
-  res.json({});
+  Promise.all([
+    getPhantom()
+      .then(ph => ph.createPage())
+      .then(page =>
+        page
+          .property('viewportSize', {
+            width: 300,
+            height: 900,
+          })
+          .then(() => page)
+      ),
+    new Promise((resolve, reject) =>
+      app.render('print', {
+        _locals: {
+          photoBase: `http://localhost:${SERVER_PORT}/photos/`,
+          photos: req.body.photos,
+          bottomText: '¡wicked!',
+        },
+      }, (err, html) => {
+        if (err) {
+          console.log('err', err);
+          reject(err);
+        } else {
+          resolve(html);
+        }
+      })
+    ),
+  ])
+    .then(([page, photoTemplate]) => {
+      const printPath = `prints/print_${Math.round(Date.now() / 1000)}.pdf`;
+      return page.setContent(photoTemplate, 'localhost')
+        .then(() => page.render(printPath))
+        .then(() => { if (OPEN_PRINT) exec(`open ${printPath}`); })
+        .then(() => res.json({ print_path: printPath }))
+        .catch(console.log);
+    })
+    .catch(res.send);
 });
 
-app.listen(8000, () => console.log('listening'));
+app.listen(SERVER_PORT, () => console.log(`listening on ${SERVER_PORT}`));

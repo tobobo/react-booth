@@ -5,6 +5,13 @@
     "document": true
   },
   "rules": {
-    "react/jsx-no-bind": 0
+    "react/jsx-no-bind": 0,
+    "comma-dangle": ["error", {
+        "arrays": "always-multiline",
+        "objects": "always-multiline",
+        "imports": "always-multiline",
+        "exports": "always-multiline",
+        "functions": "ignore",
+    }]
   }
 }
