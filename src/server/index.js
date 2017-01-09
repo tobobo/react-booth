@@ -152,7 +152,7 @@ app.post('/api/print', (req, res) => {
   ])
     .then(([page, photoTemplate]) => {
       const printSuffix = safePhotoFileNames
-        .map(photo => photo.file_name.replace(/\..+$/, ''))
+        .map(photo => photo.file_name.replace(/\..+$/, '').replace(' ', '_'))
         .join('_');
       const printPath = `prints/print_${printSuffix}.pdf`;
       return page.setContent(photoTemplate, 'localhost')
