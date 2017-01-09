@@ -3,7 +3,7 @@ import BaseComponent from './base';
 import Photo from './photo';
 
 const NUM_LARGE_PHOTOS = 0;
-const NUM_SMALL_PHOTOS = 48;
+const NUM_SMALL_PHOTOS = 64;
 const SMALL_WIDTH = 200;
 const LARGE_WIDTH = 600;
 
@@ -19,7 +19,6 @@ export default class PreviewPhotos extends BaseComponent {
   componentDidMount() {
     this.photoStore.addPhotoChangeListener(this.changeListener);
     this.photoStore.addSelectedPhotoRemovedListener(this.photoRemovedListener);
-    this.actions.loadPhotos();
   }
 
   componentWillUnmount() {

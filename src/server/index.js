@@ -106,7 +106,7 @@ app.use(`/${PHOTO_DIR}`, express.static(PHOTO_DIR));
 
 app.get('/api/photos/', (req, res) => {
   fs.readdir(`./${PHOTO_DIR}/thumbs`, (err, files) => {
-    const fileNameList = files.filter(fileName => fileName.match(/DSC/));
+    const fileNameList = files.filter(fileName => fileName.match(/\.jpg$/i));
     const fileList = fileNameList
       .reduce((memo, fileName) => {
         const convertingFile = _.find(convertingImages, image => image.match(fileName));
