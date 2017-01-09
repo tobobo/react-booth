@@ -11,7 +11,7 @@ class Photo extends BaseComponent {
 
   render() {
     const fileName = this.state.photo.file_name;
-    const filePath = `photos/${fileName}`;
+    const filePath = `photos/thumbs/${fileName}`;
     return (
       <img width={this.props.width} alt={fileName} src={filePath} />
     );

@@ -7,10 +7,14 @@ const phantom = require('phantom');
 const exphbs = require('express-handlebars');
 const path = require('path');
 const _ = require('lodash');
+const gaze = require('gaze');
+const im = require('imagemagick');
+const printer = require('printer');
 
 const PHOTO_DIR = 'photos';
 const SERVER_PORT = 8000;
-const OPEN_PRINT = true;
+const OPEN_PRINT = false;
+const PRINT_FILE = true;
 
 const app = express();
 
@@ -36,13 +40,37 @@ function getPhotos() {
 
 getPhotos();
 
+gaze('*.JPG', { cwd: 'photos' }, (err, watcher) => {
+  watcher.on('added', (filePath) => {
+    console.log('resizing', filePath);
+    im.resize({
+      srcPath: filePath,
+      dstPath: filePath.replace(PHOTO_DIR, `${PHOTO_DIR}/thumbs`),
+      quality: 0.8,
+      format: 'jpg',
+      width: 800,
+    }, (resizeErr) => {
+      if (resizeErr) console.log('resizing error', resizeErr);
+      console.log('resized', filePath);
+    });
+  });
+});
+
+function printFile(filePath) {
+  printer.printFile({
+    filename: filePath,
+    success: jobId => console.log(`queued ${filePath} with job ID ${jobId}`),
+    error: console.log,
+  });
+}
+
 app.use(bodyParser.json());
 
 app.use(express.static('./src/client'));
 app.use(`/${PHOTO_DIR}`, express.static(PHOTO_DIR));
 
 app.get('/api/photos/', (req, res) => {
-  fs.readdir(`./${PHOTO_DIR}`, (err, files) => {
+  fs.readdir(`./${PHOTO_DIR}/thumbs`, (err, files) => {
     const fileNameList = _.filter(files, fileName => fileName.match(/DSC/));
     const fileList = _.map(fileNameList, fileName => ({ file_name: fileName }));
     res.json(fileList);
@@ -56,15 +84,15 @@ app.post('/api/print', (req, res) => {
       .then(page =>
         page
           .property('viewportSize', {
-            width: 300,
-            height: 900,
+            width: 620,
+            height: 800,
           })
           .then(() => page)
       ),
     new Promise((resolve, reject) =>
       app.render('print', {
         _locals: {
-          photoBase: `http://localhost:${SERVER_PORT}/photos/`,
+          photoBase: `http://localhost:${SERVER_PORT}/${PHOTO_DIR}/thumbs/`,
           photos: req.body.photos,
           bottomText: '¡wicked!',
         },
@@ -83,6 +111,7 @@ app.post('/api/print', (req, res) => {
       return page.setContent(photoTemplate, 'localhost')
         .then(() => page.render(printPath))
         .then(() => { if (OPEN_PRINT) exec(`open ${printPath}`); })
+        .then(() => { if (PRINT_FILE) printFile(printPath); })
         .then(() => res.json({ print_path: printPath }))
         .catch(console.log);
     })
