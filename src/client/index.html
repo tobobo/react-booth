@@ -28,17 +28,23 @@
         padding: 0;
         display: inline;
         outline: none;
-        transform: scale(0.75);
         transition: all 0.3s ease-in-out;
+      }
+
+      .has-selected .photo-button {
+        transform: scale(0.75);
+      }
+
+      .has-selected .photo-button.selected {
+        transform: none;
       }
 
       .photo-button.selected {
         border: 3px solid #EEEEFF;
-        transform: none;
       }
 
       .preview-column {
-        width: 250px;
+        width: 260px;
         height: 1200px;
         float: right;
         padding-right: 10px;
@@ -52,15 +58,15 @@
         font-size: 2em;
         width: 100%;
         border-radius: 6px;
-        background-color: #000011;
-        border: 1px solid #EEEEFF;
+        background-color: #EEEEFF;
+        border: 1px solid #000011;
         outline: none;
         margin-top: 10px;
-        color: inherit;
+        color: #000011;
       }
 
       .print-button:active {
-        background-color: #222233;
+        background-color: #C0C0E0;
       }
     </style>
   </head>

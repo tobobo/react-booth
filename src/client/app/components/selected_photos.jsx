@@ -1,12 +1,13 @@
 import React from 'react';
+import throttle from 'lodash/throttle';
 import BaseComponent from './base';
 import Photo from './photo';
-
 
 class SelectedPhotos extends BaseComponent {
   constructor() {
     super();
     this.state = this.getPhotoState();
+    this.printSelectedPhotos = throttle(() => this.actions.printSelectedPhotos(), 1000);
   }
 
   getPhotoState() {
@@ -44,7 +45,7 @@ class SelectedPhotos extends BaseComponent {
           this.state.photos.map(photo =>
             <Photo
               photo={photo}
-              width={250}
+              width={260}
               key={photo.file_name}
             />,
           )

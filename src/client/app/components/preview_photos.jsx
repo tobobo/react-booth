@@ -4,7 +4,7 @@ import Photo from './photo';
 
 const NUM_LARGE_PHOTOS = 0;
 const NUM_SMALL_PHOTOS = 64;
-const SMALL_WIDTH = 200;
+const SMALL_WIDTH = 240;
 const LARGE_WIDTH = 600;
 
 export default class PreviewPhotos extends BaseComponent {
@@ -63,10 +63,11 @@ export default class PreviewPhotos extends BaseComponent {
 
   render() {
     const photos = this.state.photos.slice(0, NUM_LARGE_PHOTOS + NUM_SMALL_PHOTOS);
+    const hasSelectedPhotos = photos.find(photo => photo.selected === true);
     return (
-      <div className="preview-photos">
+      <div className={`preview-photos ${hasSelectedPhotos ? 'has-selected' : ''}`}>
         <p className="select-instructions">
-          select up to {this.photoStore.maxSelectedPhotos} photos
+          select {this.photoStore.maxSelectedPhotos} photos
         </p>
         {
           photos.map((photo, i) =>
