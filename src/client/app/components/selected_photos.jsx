@@ -34,7 +34,7 @@ class SelectedPhotos extends BaseComponent {
   }
 
   printSelectedPhotos() {
-
+    this.actions.printSelectedPhotos();
   }
 
   render() {

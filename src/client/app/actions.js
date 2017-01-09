@@ -16,4 +16,12 @@ export default class Actions {
   static deselectPhoto(photo) {
     dispatcher.dispatch({ actionType: 'DESELECT_PHOTO', photo });
   }
+
+  static printSelectedPhotos() {
+    dispatcher.dispatch({ actionType: 'PRINT_SELECTED_PHOTOS' });
+  }
+
+  static printRequestComplete(photos) {
+    dispatcher.dispatch({ actionType: 'PRINT_COMPLETE', photos });
+  }
 }

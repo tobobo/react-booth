@@ -1,7 +1,7 @@
-import 'whatwg-fetch';
 import { EventEmitter } from 'events';
 import dispatcher from '../dispatcher';
 import Actions from '../actions';
+import ApiAdapter from '../api_adapter';
 
 const MAX_SELECTED_PHOTOS = 4;
 
@@ -10,6 +10,7 @@ class PhotoStore extends EventEmitter {
     super();
     this.photos = [];
     this.selectedPhotos = [];
+    this.apiAdapter = ApiAdapter;
     this.fetch = fetch.bind(undefined);
   }
 
@@ -34,7 +35,7 @@ class PhotoStore extends EventEmitter {
   }
 
   addSelected(photo) {
-    const selectedPhotos = this.selectedPhotos.concat([photo]);
+    const selectedPhotos = this.getSelected().concat([photo]);
     const unselectedPhotos = selectedPhotos.slice(0, -MAX_SELECTED_PHOTOS);
     unselectedPhotos.forEach(unselectedPhoto => this.removeAndEmit(unselectedPhoto));
     this.selectedPhotos = selectedPhotos.slice(-MAX_SELECTED_PHOTOS);
@@ -43,7 +44,7 @@ class PhotoStore extends EventEmitter {
 
   removeFromSelectedArray(photoToRemove) {
     let photoRemoved = false;
-    this.selectedPhotos = this.selectedPhotos.reduce((memo, photo) => {
+    this.selectedPhotos = this.getSelected().reduce((memo, photo) => {
       if (photo.file_name === photoToRemove.file_name) {
         photoRemoved = true;
       } else {
@@ -100,14 +101,20 @@ class PhotoStore extends EventEmitter {
   }
 
   loadPhotos() {
-    this.fetch('/api/photos/')
-      .then(response => response.json())
-      .then((body) => { Actions.receivePhotos(body); })
+    this.apiAdapter.getPhotos()
+      .then((photoBody) => { Actions.receivePhotos(photoBody); })
       .catch();
   }
 
   photosPrintable() {
     return this.selectedPhotos.length === MAX_SELECTED_PHOTOS;
+  }
+
+  printSelected() {
+    if (!this.photosPrintable()) return;
+    this.apiAdapter.print(this.getSelected())
+      .then(() => { Actions.printRequestComplete(); })
+      .catch();
   }
 }
 
@@ -126,6 +133,9 @@ photoStore.dispatchToken = dispatcher.register((payload) => {
       break;
     case 'DESELECT_PHOTO':
       photoStore.handleDeselection(payload.photo);
+      break;
+    case 'PRINT_SELECTED_PHOTOS':
+      photoStore.printSelected();
       break;
     default:
       break;
