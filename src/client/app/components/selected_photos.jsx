@@ -6,7 +6,14 @@ import Photo from './photo';
 class SelectedPhotos extends BaseComponent {
   constructor() {
     super();
-    this.state = { photos: this.getSelectedPhotos() };
+    this.state = this.getPhotoState();
+  }
+
+  getPhotoState() {
+    return {
+      photos: this.getSelectedPhotos(),
+      printable: this.photoStore.photosPrintable(),
+    };
   }
 
   getSelectedPhotos() {
@@ -23,7 +30,11 @@ class SelectedPhotos extends BaseComponent {
   }
 
   onChange() {
-    this.setState({ photos: this.getSelectedPhotos() });
+    this.setState(this.getPhotoState());
+  }
+
+  printSelectedPhotos() {
+
   }
 
   render() {
@@ -33,11 +44,12 @@ class SelectedPhotos extends BaseComponent {
           this.state.photos.map(photo =>
             <Photo
               photo={photo}
-              width={300}
+              width={250}
               key={photo.file_name}
             />,
           )
         }
+        {this.state.printable ? <button onClick={this.printSelectedPhotos.bind(this)}>Print it!</button> : ''}
       </div>
     );
   }

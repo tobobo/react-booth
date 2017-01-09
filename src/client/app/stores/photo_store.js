@@ -105,6 +105,10 @@ class PhotoStore extends EventEmitter {
       .then((body) => { Actions.receivePhotos(body); })
       .catch();
   }
+
+  photosPrintable() {
+    return this.selectedPhotos.length === MAX_SELECTED_PHOTOS;
+  }
 }
 
 const photoStore = new PhotoStore();

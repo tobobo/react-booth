@@ -70,7 +70,7 @@ export default class PreviewPhotos extends BaseComponent {
               <button onMouseDown={this.togglePhotoSelection.bind(this, photo)} className={`photo-button ${photo.selected ? 'selected' : ''}`}>
                 <Photo
                   photo={photo}
-                  width={i >= NUM_LARGE_PHOTOS ? 200 : 600}
+                  width={i >= NUM_LARGE_PHOTOS ? 180 : 600}
                 />
               </button>
               <span>{i === NUM_LARGE_PHOTOS - 1 ? <br /> : ''}</span>
