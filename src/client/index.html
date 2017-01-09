@@ -28,10 +28,13 @@
         padding: 0;
         display: inline;
         outline: none;
+        transform: scale(0.75);
+        transition: all 0.3s ease-in-out;
       }
 
       .photo-button.selected {
-        border-color: green;
+        border: 3px solid #EEEEFF;
+        transform: none;
       }
 
       .preview-column {

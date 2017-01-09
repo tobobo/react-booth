@@ -59,7 +59,7 @@ export default class PreviewPhotos extends BaseComponent {
 
   onChange() {
     this.setState({ photos: this.photoStore.getAll().reverse() });
-    setTimeout(() => this.actions.loadPhotos(), 100);
+    setTimeout(() => this.actions.loadPhotos(), 750);
   }
 
   render() {
@@ -72,7 +72,10 @@ export default class PreviewPhotos extends BaseComponent {
         {
           photos.map((photo, i) =>
             <span key={photo.file_name}>
-              <button onMouseDown={this.togglePhotoSelection.bind(this, photo)} className={`photo-button ${photo.selected ? 'selected' : ''}`}>
+              <button
+                onMouseDown={this.togglePhotoSelection.bind(this, photo)}
+                className={`photo-button ${photo.selected ? 'selected' : ''}`}
+              >
                 <Photo
                   photo={photo}
                   width={i >= NUM_LARGE_PHOTOS ? SMALL_WIDTH : LARGE_WIDTH}
