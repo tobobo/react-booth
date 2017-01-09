@@ -1,6 +1,7 @@
 const nodemon = require('nodemon');
 const webpack = require('webpack');
 
+// eslint-disable-next-line no-console
 const log = (...args) => console.log('!!!', ...args);
 
 nodemon({
