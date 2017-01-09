@@ -3,6 +3,8 @@ import { EventEmitter } from 'events';
 import dispatcher from '../dispatcher';
 import Actions from '../actions';
 
+const MAX_SELECTED_PHOTOS = 4;
+
 class PhotoStore extends EventEmitter {
   constructor() {
     super();
@@ -16,6 +18,13 @@ class PhotoStore extends EventEmitter {
   }
 
   setAll(photos) {
+    photos.forEach((photo) => {
+      const loadedPhoto = photo;
+      const photoAlreadySelected = this.selectedPhotos.find(
+        selectedPhoto => selectedPhoto.file_name === loadedPhoto.file_name,
+      );
+      if (photoAlreadySelected) loadedPhoto.selected = true;
+    });
     this.photos = photos;
     this.emitPhotoChange();
   }
@@ -25,7 +34,32 @@ class PhotoStore extends EventEmitter {
   }
 
   addSelected(photo) {
-    this.selectedPhotos.unshift(photo);
+    const selectedPhotos = this.selectedPhotos.concat([photo]);
+    const unselectedPhotos = selectedPhotos.slice(0, -MAX_SELECTED_PHOTOS);
+    unselectedPhotos.forEach(unselectedPhoto => this.removeAndEmit(unselectedPhoto));
+    this.selectedPhotos = selectedPhotos.slice(-MAX_SELECTED_PHOTOS);
+    this.emitSelectedPhotosChange();
+  }
+
+  removeFromSelectedArray(photoToRemove) {
+    let photoRemoved = false;
+    this.selectedPhotos = this.selectedPhotos.reduce((memo, photo) => {
+      if (photo.file_name === photoToRemove.file_name) {
+        photoRemoved = true;
+      } else {
+        memo.push(photo);
+      }
+      return memo;
+    }, []);
+    return photoRemoved;
+  }
+
+  removeAndEmit(photoToRemove) {
+    if (this.removeFromSelectedArray(photoToRemove)) this.emitPhotoRemoved(photoToRemove);
+  }
+
+  handleDeselection(photoToRemove) {
+    this.removeFromSelectedArray(photoToRemove);
     this.emitSelectedPhotosChange();
   }
 
@@ -35,6 +69,10 @@ class PhotoStore extends EventEmitter {
 
   emitSelectedPhotosChange() {
     this.emit('selectedPhotosChange');
+  }
+
+  emitPhotoRemoved(photo) {
+    this.emit('selectedPhotoRemoved', photo);
   }
 
   addPhotoChangeListener(callback) {
@@ -53,6 +91,14 @@ class PhotoStore extends EventEmitter {
     this.off('selectedPhotosChange', callback);
   }
 
+  addSelectedPhotoRemovedListener(callback) {
+    this.on('selectedPhotoRemoved', callback);
+  }
+
+  removeSelectedPhotoRemovedListener(callback) {
+    this.off('selectedPhotoRemoved', callback);
+  }
+
   loadPhotos() {
     this.fetch('/api/photos/')
       .then(response => response.json())
@@ -69,10 +115,13 @@ photoStore.dispatchToken = dispatcher.register((payload) => {
       photoStore.loadPhotos();
       break;
     case 'RECEIVE_PHOTOS':
-      photoStore.setAll(payload);
+      photoStore.setAll(payload.photos);
       break;
     case 'SELECT_PHOTO':
       photoStore.addSelected(payload.photo);
+      break;
+    case 'DESELECT_PHOTO':
+      photoStore.handleDeselection(payload.photo);
       break;
     default:
       break;

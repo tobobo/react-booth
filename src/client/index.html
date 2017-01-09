@@ -3,7 +3,11 @@
     <meta charset="utf-8">
     <title>React Booth</title>
     <style>
+      html, body {
+        background-color: #000008;
+      }
       .photo-button {
+        box-sizing: border-box;
         background-color: transparent;
         border: 3px solid transparent;
         margin: 3px;
@@ -16,8 +20,10 @@
         border-color: green;
       }
 
-      .selected-photos {
-        height: 300px;
+      .preview-column {
+        width: 300px;
+        height: 1200px;
+        float: right;
       }
     </style>
   </head>
