@@ -11,8 +11,15 @@ const gaze = require('gaze');
 const im = require('imagemagick');
 const printer = require('printer');
 
+// eslint-disable-next-line no-console
+const log = (...args) => console.log('***', ...args);
+
 const PHOTO_DIR = 'photos';
+
 const SERVER_PORT = 8000;
+
+const RETRY_PHOTO_CAPTURE = false;
+const KILL_PTPCAMERA = true;
 const OPEN_PREVIEW = true;
 const PRINT_FILE = false;
 
@@ -32,21 +39,39 @@ app.set('view engine', '.hbs');
 
 const getPhantom = _.memoize(() => phantom.create());
 
-function getPhotos() {
-  const captureProcess = spawn('gphoto2', ['--capture-tethered'], {
-    cwd: `./${PHOTO_DIR}`,
-  });
-  captureProcess.stdout.pipe(process.stdout);
-  captureProcess.stderr.pipe(process.stderr);
+function runPhotoProcess() {
+  new Promise((resolve) => {
+    if (!KILL_PTPCAMERA) {
+      resolve();
+      return;
+    }
+    exec('killall PTPCamera', () => resolve());
+  })
+    .then(() => {
+      const captureProcess = spawn('gphoto2', ['--capture-tethered'], {
+        cwd: `./${PHOTO_DIR}`,
+      });
+      captureProcess.stdout.pipe(process.stdout);
+      captureProcess.stderr.pipe(process.stderr);
+      captureProcess.stderr.on('data', (data) => {
+        const dataString = data.toString();
+        if (dataString.match(/error/i)) {
+          captureProcess.kill();
+          if (RETRY_PHOTO_CAPTURE) {
+            setTimeout(runPhotoProcess, 5000);
+          }
+        }
+      });
+    });
 }
 
-getPhotos();
+runPhotoProcess();
 
 let convertingImages = [];
 
 gaze(['*.jpg', '*.JPG'], { cwd: 'photos' }, (err, watcher) => {
   watcher.on('added', (filePath) => {
-    console.log('resizing', filePath);
+    log('resizing', filePath);
     const basename = path.basename(filePath);
     convertingImages.push(basename);
     im.convert([
@@ -60,8 +85,8 @@ gaze(['*.jpg', '*.JPG'], { cwd: 'photos' }, (err, watcher) => {
         if (basename !== convertingImage) memo.push(basename);
         return memo;
       }, []);
-      if (convertErr) console.log('resizing error', convertErr);
-      console.log('resized', filePath);
+      if (convertErr) log('resizing error', convertErr);
+      log('resized', filePath);
     });
   });
 });
@@ -69,8 +94,8 @@ gaze(['*.jpg', '*.JPG'], { cwd: 'photos' }, (err, watcher) => {
 function printFile(filePath) {
   printer.printFile({
     filename: filePath,
-    success: jobId => console.log(`queued ${filePath} with job ID ${jobId}`),
-    error: console.log,
+    success: jobId => log(`queued ${filePath} with job ID ${jobId}`),
+    error: log,
   });
 }
 
@@ -94,6 +119,9 @@ app.get('/api/photos/', (req, res) => {
 });
 
 app.post('/api/print', (req, res) => {
+  const safePhotoFileNames = req.body.photos.map(photo =>
+    ({ file_name: path.basename(photo.file_name) })
+  );
   Promise.all([
     getPhantom()
       .then(ph => ph.createPage())
@@ -109,12 +137,12 @@ app.post('/api/print', (req, res) => {
       app.render('print', {
         _locals: {
           photoBase: `http://localhost:${SERVER_PORT}/${PHOTO_DIR}/thumbs/`,
-          photos: req.body.photos,
+          photos: safePhotoFileNames,
           bottomText: BOTTOM_TEXTS[Math.floor(Math.random() * BOTTOM_TEXTS.length)],
         },
       }, (err, html) => {
         if (err) {
-          console.log('err', err);
+          log('err', err);
           reject(err);
         } else {
           resolve(html);
@@ -123,15 +151,18 @@ app.post('/api/print', (req, res) => {
     ),
   ])
     .then(([page, photoTemplate]) => {
-      const printPath = `prints/print_${Math.round(Date.now() / 1000)}.pdf`;
+      const printSuffix = safePhotoFileNames
+        .map(photo => photo.file_name.replace(/\..+$/, ''))
+        .join('_');
+      const printPath = `prints/print_${printSuffix}.pdf`;
       return page.setContent(photoTemplate, 'localhost')
         .then(() => page.render(printPath))
         .then(() => { if (OPEN_PREVIEW) exec(`open ${printPath}`); })
         .then(() => { if (PRINT_FILE) printFile(printPath); })
         .then(() => res.json({ print_path: printPath }))
-        .catch(console.log);
+        .catch(log);
     })
     .catch(res.send);
 });
 
-app.listen(SERVER_PORT, () => console.log(`listening on ${SERVER_PORT}`));
+app.listen(SERVER_PORT, () => log(`listening on ${SERVER_PORT}`));

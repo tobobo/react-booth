@@ -67,7 +67,7 @@ export default class PreviewPhotos extends BaseComponent {
     return (
       <div className="preview-photos">
         <p className="select-instructions">
-          Select up to {this.photoStore.maxSelectedPhotos} photos
+          select up to {this.photoStore.maxSelectedPhotos} photos
         </p>
         {
           photos.map((photo, i) =>
