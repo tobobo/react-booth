@@ -39,7 +39,7 @@ export default class PreviewPhotos extends BaseComponent {
     selectedPhoto.selected = true;
     this.actions.selectPhoto(selectedPhoto);
     this.setState({ photos: this.state.photos });
-    this.waitToLoadAfterSelection();
+    this.waitToDisplayNewPhotosAfterSelection();
   }
 
   deselectPhoto(photo) {
@@ -47,14 +47,12 @@ export default class PreviewPhotos extends BaseComponent {
     deselectedPhoto.selected = false;
     this.actions.deselectPhoto(deselectedPhoto);
     this.setState({ photo: this.state.photos });
-    this.waitToLoadAfterSelection();
+    this.waitToDisplayNewPhotosAfterSelection();
   }
 
-  waitToLoadAfterSelection() {
-    if (this.photoLoadTimeout) clearTimeout(this.photoLoadTimeout);
+  waitToDisplayNewPhotosAfterSelection() {
     if (this.photoWaitTimeout) clearTimeout(this.photoWaitTimeout);
     this.photoWaitTimeout = setTimeout(() => {
-      this.actions.loadPhotos();
       this.photoWaitTimeout = undefined;
     }, 5000);
   }
@@ -68,12 +66,8 @@ export default class PreviewPhotos extends BaseComponent {
   }
 
   onChange() {
-    if (this.photoWaitTimeout) return; // do not change state if photos are being selected
+    if (this.photoWaitTimeout) return;
     this.setState({ photos: this.photoStore.getAll().reverse() });
-    this.photoLoadTimeout = setTimeout(() => {
-      this.actions.loadPhotos();
-      this.photoLoadTimeout = undefined;
-    }, 750);
   }
 
   render() {

@@ -1,3 +1,5 @@
+const http = require('http');
+const socketIo = require('socket.io');
 const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs');
@@ -26,6 +28,8 @@ const PRINT_FILE = false;
 const BOTTOM_TEXTS = ['¡wicked!', '2017', '1622', 'nice duds', 'many thanks', 'we <3 isaac'];
 
 const app = express();
+const httpServer = http.Server(app);
+const io = socketIo(httpServer);
 
 const viewBase = path.join(__dirname, 'views');
 app.set('views', viewBase);
@@ -87,6 +91,7 @@ gaze(['*.jpg', '*.JPG'], { cwd: 'photos' }, (err, watcher) => {
       }, []);
       if (convertErr) log('resizing error', convertErr);
       log('resized', filePath);
+      io.emit('photo', { file_name: path.basename(filePath) });
     });
   });
 });
@@ -104,25 +109,32 @@ app.use(bodyParser.json());
 app.use(express.static('./src/client'));
 app.use(`/${PHOTO_DIR}`, express.static(PHOTO_DIR));
 
+function getPhotos() {
+  return new Promise(resolve =>
+    fs.readdir(`./${PHOTO_DIR}/thumbs`, (err, files) => {
+      const fileNameList = files.filter(fileName => fileName.match(/\.jpg$/i));
+      const fileList = fileNameList
+        .reduce((memo, fileName) => {
+          const convertingFile = _.find(convertingImages, image => image.match(fileName));
+          if (!convertingFile) memo.push(fileName);
+          return memo;
+        }, [])
+        .map(fileName => ({ file_name: fileName }));
+      resolve(fileList);
+    })
+  );
+}
+
 app.get('/api/photos/', (req, res) => {
-  fs.readdir(`./${PHOTO_DIR}/thumbs`, (err, files) => {
-    const fileNameList = files.filter(fileName => fileName.match(/\.jpg$/i));
-    const fileList = fileNameList
-      .reduce((memo, fileName) => {
-        const convertingFile = _.find(convertingImages, image => image.match(fileName));
-        if (!convertingFile) memo.push(fileName);
-        return memo;
-      }, [])
-      .map(fileName => ({ file_name: fileName }));
-    res.json(fileList);
-  });
+  getPhotos().then(photos => res.json(photos));
 });
 
-app.post('/api/print', (req, res) => {
-  const safePhotoFileNames = req.body.photos.map(photo =>
+function print(photos) {
+  const safePhotoFileNames = photos.map(photo =>
     ({ file_name: path.basename(photo.file_name) })
   );
-  Promise.all([
+
+  return Promise.all([
     getPhantom()
       .then(ph => ph.createPage())
       .then(page =>
@@ -159,10 +171,22 @@ app.post('/api/print', (req, res) => {
         .then(() => page.render(printPath))
         .then(() => { if (OPEN_PREVIEW) exec(`open ${printPath}`); })
         .then(() => { if (PRINT_FILE) printFile(printPath); })
-        .then(() => res.json({ print_path: printPath }))
-        .catch(log);
-    })
+        .then(() => path.basename(printPath));
+    });
+}
+
+app.post('/api/print', (req, res) => {
+  print(req.body.photos)
+    .then(printName => res.json({ print_path: printName }))
     .catch(res.send);
 });
 
-app.listen(SERVER_PORT, () => log(`listening on ${SERVER_PORT}`));
+io.on('connection', (socket) => {
+  getPhotos().then(photos => socket.emit('photos', photos));
+  socket.on('print', (photos) => {
+    print(photos)
+      .then(printName => socket.emit('print_queued', { print_name: printName }));
+  });
+});
+
+httpServer.listen(SERVER_PORT, () => log(`listening on ${SERVER_PORT}`));

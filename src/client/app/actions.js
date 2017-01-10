@@ -9,6 +9,10 @@ export default class Actions {
     dispatcher.dispatch({ actionType: 'RECEIVE_PHOTOS', photos: photoBody });
   }
 
+  static receiveOnePhoto(photo) {
+    dispatcher.dispatch({ actionType: 'RECEIVE_PHOTO', photo });
+  }
+
   static selectPhoto(photo) {
     dispatcher.dispatch({ actionType: 'SELECT_PHOTO', photo });
   }

@@ -23,7 +23,6 @@ class SelectedPhotos extends BaseComponent {
 
   componentDidMount() {
     this.photoStore.addSelectedPhotosChangeListener(this.changeListener);
-    this.actions.loadPhotos();
   }
 
   componentWillUnmount() {

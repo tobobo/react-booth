@@ -1,7 +1,6 @@
 import { EventEmitter } from 'events';
 import dispatcher from '../dispatcher';
-import Actions from '../actions';
-import ApiAdapter from '../api_adapter';
+import SocketAdapter from '../adapters/socket_adapter';
 
 const MAX_SELECTED_PHOTOS = 4;
 
@@ -11,7 +10,8 @@ class PhotoStore extends EventEmitter {
     this.photos = [];
     this.selectedPhotos = [];
     this.maxSelectedPhotos = MAX_SELECTED_PHOTOS;
-    this.apiAdapter = ApiAdapter;
+    this.apiAdapter = SocketAdapter;
+    this.apiAdapter.setupPhotos();
     this.fetch = fetch.bind(undefined);
   }
 
@@ -28,6 +28,11 @@ class PhotoStore extends EventEmitter {
       if (photoAlreadySelected) loadedPhoto.selected = true;
     });
     this.photos = photos;
+    this.emitPhotoChange();
+  }
+
+  addOnePhoto(photo) {
+    this.photos.push(photo);
     this.emitPhotoChange();
   }
 
@@ -101,21 +106,13 @@ class PhotoStore extends EventEmitter {
     this.off('selectedPhotoRemoved', callback);
   }
 
-  loadPhotos() {
-    this.apiAdapter.getPhotos()
-      .then((photoBody) => { Actions.receivePhotos(photoBody); })
-      .catch();
-  }
-
   photosPrintable() {
     return this.selectedPhotos.length === MAX_SELECTED_PHOTOS;
   }
 
   printSelected() {
     if (!this.photosPrintable()) return;
-    this.apiAdapter.print(this.getSelected())
-      .then(() => { Actions.printRequestComplete(); })
-      .catch();
+    this.apiAdapter.print(this.getSelected());
   }
 }
 
@@ -128,6 +125,9 @@ photoStore.dispatchToken = dispatcher.register((payload) => {
       break;
     case 'RECEIVE_PHOTOS':
       photoStore.setAll(payload.photos);
+      break;
+    case 'RECEIVE_PHOTO':
+      photoStore.addOnePhoto(payload.photo);
       break;
     case 'SELECT_PHOTO':
       photoStore.addSelected(payload.photo);
