@@ -13,6 +13,12 @@
 
       button {
         cursor: pointer;
+        transition: opacity, background 0.25s ease-in-out;
+      }
+
+      button:disabled {
+        cursor: default;
+        opacity: 0.75;
       }
 
       .preview-photos {
@@ -22,6 +28,7 @@
       .select-instructions {
         margin-top: 1em;
         margin-left: 3px;
+        text-align: center;
       }
 
       .photo-button {
@@ -58,19 +65,31 @@
         margin-bottom: 5px;
       }
 
-      .print-button {
-        font-size: 2em;
-        width: 100%;
+      .big-button {
         border-radius: 6px;
         background-color: #EEEEFF;
         border: 1px solid #000011;
         outline: none;
-        margin-top: 10px;
         color: #000011;
+        font-size: 2em;
+        margin: 10px 0;
       }
 
-      .print-button:active {
+      .big-button:active {
         background-color: #C0C0E0;
+      }
+
+      .print-button {
+        width: 100%;
+      }
+
+      .capture-button-wrapper {
+        text-align: center;
+      }
+
+      .capture-button {
+        display: inline-block;
+        width: 240px;
       }
     </style>
   </head>

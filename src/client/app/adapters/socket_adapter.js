@@ -21,6 +21,10 @@ class SocketAdapter {
   static print(photos) {
     socket.emit('print', photos);
   }
+
+  static capture() {
+    socket.emit('capture');
+  }
 }
 
 export default SocketAdapter;

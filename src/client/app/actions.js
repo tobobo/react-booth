@@ -28,4 +28,8 @@ export default class Actions {
   static printRequestComplete(photos) {
     dispatcher.dispatch({ actionType: 'PRINT_COMPLETE', photos });
   }
+
+  static capture() {
+    dispatcher.dispatch({ actionType: 'CAPTURE' });
+  }
 }

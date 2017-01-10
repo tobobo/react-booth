@@ -12,7 +12,6 @@ class PhotoStore extends EventEmitter {
     this.maxSelectedPhotos = MAX_SELECTED_PHOTOS;
     this.apiAdapter = SocketAdapter;
     this.apiAdapter.setupPhotos();
-    this.fetch = fetch.bind(undefined);
   }
 
   getAll() {
@@ -114,6 +113,10 @@ class PhotoStore extends EventEmitter {
     if (!this.photosPrintable()) return;
     this.apiAdapter.print(this.getSelected());
   }
+
+  capture() {
+    this.apiAdapter.capture();
+  }
 }
 
 const photoStore = new PhotoStore();
@@ -137,6 +140,9 @@ photoStore.dispatchToken = dispatcher.register((payload) => {
       break;
     case 'PRINT_SELECTED_PHOTOS':
       photoStore.printSelected();
+      break;
+    case 'CAPTURE':
+      photoStore.capture();
       break;
     default:
       break;

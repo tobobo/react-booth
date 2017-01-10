@@ -13,6 +13,8 @@ const gaze = require('gaze');
 const im = require('imagemagick');
 const printer = require('printer');
 
+const getUnixTime = () => Math.floor(Date.now() / 1000);
+
 // eslint-disable-next-line no-console
 const log = (...args) => console.log('***', ...args);
 
@@ -22,8 +24,8 @@ const SERVER_PORT = 8000;
 
 const RETRY_PHOTO_CAPTURE = false;
 const KILL_PTPCAMERA = true;
-const OPEN_PREVIEW = true;
-const PRINT_FILE = false;
+const OPEN_PREVIEW = false;
+const PRINT_FILE = true;
 
 const BOTTOM_TEXTS = ['¡wicked!', '2017', '1622', 'nice duds', 'many thanks', 'we <3 isaac'];
 
@@ -43,7 +45,8 @@ app.set('view engine', '.hbs');
 
 const getPhantom = _.memoize(() => phantom.create());
 
-function runPhotoProcess() {
+let downloadProcess;
+function runDownloadProcess() {
   new Promise((resolve) => {
     if (!KILL_PTPCAMERA) {
       resolve();
@@ -52,24 +55,38 @@ function runPhotoProcess() {
     exec('killall PTPCamera', () => resolve());
   })
     .then(() => {
-      const captureProcess = spawn('gphoto2', ['--capture-tethered'], {
+      downloadProcess = spawn('gphoto2', ['--capture-tethered'], {
         cwd: `./${PHOTO_DIR}`,
       });
-      captureProcess.stdout.pipe(process.stdout);
-      captureProcess.stderr.pipe(process.stderr);
-      captureProcess.stderr.on('data', (data) => {
+      downloadProcess.stdout.pipe(process.stdout);
+      downloadProcess.stderr.pipe(process.stderr);
+      downloadProcess.stderr.on('data', (data) => {
         const dataString = data.toString();
         if (dataString.match(/error/i)) {
-          captureProcess.kill();
+          if (downloadProcess) downloadProcess.kill();
+          downloadProcess = undefined;
           if (RETRY_PHOTO_CAPTURE) {
-            setTimeout(runPhotoProcess, 5000);
+            setTimeout(runDownloadProcess, 5000);
           }
         }
       });
     });
 }
 
-runPhotoProcess();
+let capturing = false;
+function capture() {
+  if (capturing) return;
+  if (downloadProcess) downloadProcess.kill();
+  capturing = true;
+  setTimeout(() => {
+    exec(`cd photos && gphoto2 --capture-image-and-download -F 4 -I 2 --filename ${getUnixTime()}_capture_%n.JPG`, () => {
+      capturing = false;
+      runDownloadProcess();
+    });
+  }, 1000);
+}
+
+runDownloadProcess();
 
 let convertingImages = [];
 
@@ -140,7 +157,7 @@ function print(photos) {
       .then(page =>
         page
           .property('viewportSize', {
-            width: 620,
+            width: 240,
             height: 800,
           })
           .then(() => page)
@@ -187,6 +204,8 @@ io.on('connection', (socket) => {
     print(photos)
       .then(printName => socket.emit('print_queued', { print_name: printName }));
   });
+
+  socket.on('capture', capture);
 });
 
 httpServer.listen(SERVER_PORT, () => log(`listening on ${SERVER_PORT}`));

@@ -6,6 +6,7 @@ const NUM_LARGE_PHOTOS = 0;
 const NUM_SMALL_PHOTOS = 64;
 const SMALL_WIDTH = 240;
 const LARGE_WIDTH = 600;
+const ALLOW_CAPTURE = true;
 
 export default class PreviewPhotos extends BaseComponent {
   constructor() {
@@ -67,7 +68,13 @@ export default class PreviewPhotos extends BaseComponent {
 
   onChange() {
     if (this.photoWaitTimeout) return;
-    this.setState({ photos: this.photoStore.getAll().reverse() });
+    this.setState({ photos: this.photoStore.getAll().slice(0).reverse() });
+  }
+
+  capture() {
+    this.actions.capture();
+    this.setState({ capturing: true });
+    setTimeout(() => this.setState({ capturing: false }), 10000);
   }
 
   render() {
@@ -75,8 +82,21 @@ export default class PreviewPhotos extends BaseComponent {
     const hasSelectedPhotos = photos.find(photo => photo.selected === true);
     return (
       <div className={`preview-photos ${hasSelectedPhotos ? 'has-selected' : ''}`}>
+        {
+          ALLOW_CAPTURE &&
+            <div className="capture-button-wrapper">
+              <button
+                className="capture-button big-button"
+                onClick={this.capture.bind(this)}
+                disabled={this.state.capturing ? 'disabled' : ''}
+              >
+                {this.state.capturing ? 'capturing...' : 'CAPTURE 4'}
+              </button>
+              <p><small><em>and when you are satisfied</em></small></p>
+            </div>
+        }
         <p className="select-instructions">
-          select {this.photoStore.maxSelectedPhotos} photos
+          select {this.photoStore.maxSelectedPhotos} photos to print
         </p>
         {
           photos.map((photo, i) =>
