@@ -4,13 +4,14 @@ const path = require('path');
 
 const config = require('../../../config.js');
 const log = require('../lib/log_helper');
+const socketAdapter = require('./socket_adapter');
 
 const PHOTO_DIR = config.photoDir;
 
 const imageConversionAdapter = {
   convertingImages: [],
 
-  convertImage(filePath) {
+  convertImage(filePath, conversionCallback) {
     log('resizing', filePath);
     const basename = path.basename(filePath);
     this.convertingImages.push(basename);
@@ -27,14 +28,16 @@ const imageConversionAdapter = {
       }, []);
       if (convertErr) log('resizing error', convertErr);
       log('resized', filePath);
+      conversionCallback(filePath);
     });
   },
 
-  watchPhotoDirectory(photoCallback) {
+  watchPhotoDirectory() {
     gaze(['*.jpg', '*.JPG'], { cwd: 'photos' }, (err, watcher) => {
       watcher.on('added', (filePath) => {
-        this.convertImage(filePath);
-        photoCallback(filePath);
+        this.convertImage(filePath, (convertedPath) => {
+          socketAdapter.io.emit('photo', { file_name: path.basename(convertedPath) });
+        });
       });
     });
   },

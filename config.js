@@ -1,6 +1,6 @@
 module.exports = {
   port: 8000,
-  retryPhotoDownload: true,
+  // retryPhotoDownload: true,
   killPtpCamera: true,
   openPreview: true,
   printFile: false,
