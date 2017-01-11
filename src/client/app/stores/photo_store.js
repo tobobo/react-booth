@@ -3,6 +3,8 @@ import dispatcher from '../dispatcher';
 import SocketAdapter from '../adapters/socket_adapter';
 
 const MAX_SELECTED_PHOTOS = 4;
+const AUTO_ADD = true;
+const AUTO_PRINT = true;
 
 class PhotoStore extends EventEmitter {
   constructor() {
@@ -11,6 +13,7 @@ class PhotoStore extends EventEmitter {
     this.selectedPhotos = [];
     this.maxSelectedPhotos = MAX_SELECTED_PHOTOS;
     this.apiAdapter = SocketAdapter;
+    this.photosSinceLastPrint = 0;
     this.apiAdapter.setupPhotos();
   }
 
@@ -30,7 +33,12 @@ class PhotoStore extends EventEmitter {
     this.emitPhotoChange();
   }
 
-  addOnePhoto(photo) {
+  addOnePhoto(photoToAdd) {
+    const photo = photoToAdd;
+    if (AUTO_ADD) {
+      photo.selected = true;
+      this.addSelected(photo);
+    }
     this.photos.push(photo);
     this.emitPhotoChange();
   }
@@ -44,6 +52,10 @@ class PhotoStore extends EventEmitter {
     const unselectedPhotos = selectedPhotos.slice(0, -MAX_SELECTED_PHOTOS);
     unselectedPhotos.forEach(unselectedPhoto => this.removeAndEmit(unselectedPhoto));
     this.selectedPhotos = selectedPhotos.slice(-MAX_SELECTED_PHOTOS);
+    this.photosSinceLastPrint += 1;
+    if (AUTO_PRINT && this.photosSinceLastPrint >= MAX_SELECTED_PHOTOS) {
+      this.printSelected();
+    }
     this.emitSelectedPhotosChange();
   }
 
@@ -111,6 +123,7 @@ class PhotoStore extends EventEmitter {
 
   printSelected() {
     if (!this.photosPrintable()) return;
+    this.photosSinceLastPrint = 0;
     this.apiAdapter.print(this.getSelected());
   }
 
