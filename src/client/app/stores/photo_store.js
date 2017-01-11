@@ -4,7 +4,7 @@ import SocketAdapter from '../adapters/socket_adapter';
 
 const MAX_SELECTED_PHOTOS = 4;
 const AUTO_ADD = true;
-const AUTO_PRINT = true;
+const AUTO_PRINT = false;
 
 class PhotoStore extends EventEmitter {
   constructor() {
