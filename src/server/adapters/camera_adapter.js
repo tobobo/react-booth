@@ -13,17 +13,34 @@ const cameraAdapter = {
   capturing: false,
   downloadProcess: undefined,
 
-  runDownloadProcess() {
-    if (this.capturing) return;
-    log('setting up auto download');
-    new Promise((resolve) => {
+  killPtpCameraIfEnabled() {
+    return new Promise((resolve) => {
       if (!KILL_PTPCAMERA) {
         resolve();
         return;
       }
       log('killing PTPCamera');
       exec('killall PTPCamera', () => resolve());
-    })
+    });
+  },
+
+  handleDownloadError(errorData) {
+    const dataString = errorData.toString();
+    if (dataString.match(/error/i)) {
+      if (this.downloadProcess) this.downloadProcess.kill();
+      this.downloadProcess = undefined;
+      if (RETRY_PHOTO_DOWNLOAD) {
+        log('retrying photo process in 5 seconds');
+        setTimeout(() => this.runDownloadProcess(), 5000);
+      }
+    }
+  },
+
+  runDownloadProcess() {
+    if (this.capturing) return;
+    log('setting up auto download');
+
+    this.killPtpCameraIfEnabled()
       .then(() => {
         this.downloadProcess = spawn('gphoto2', ['--capture-tethered'], {
           cwd: `./${PHOTO_DIR}`,
@@ -32,15 +49,7 @@ const cameraAdapter = {
         this.downloadProcess.stdout.pipe(process.stdout);
         this.downloadProcess.stderr.pipe(process.stderr);
         this.downloadProcess.stderr.on('data', (data) => {
-          const dataString = data.toString();
-          if (dataString.match(/error/i)) {
-            if (this.downloadProcess) this.downloadProcess.kill();
-            this.downloadProcess = undefined;
-            if (RETRY_PHOTO_DOWNLOAD) {
-              log('retrying photo process in 5 seconds');
-              setTimeout(() => this.runDownloadProcess(), 5000);
-            }
-          }
+          this.handleDownloadError(data);
         });
       });
   },

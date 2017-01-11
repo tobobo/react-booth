@@ -6,7 +6,7 @@ const log = (...args) => console.log('!!!', ...args);
 
 nodemon({
   script: './src/server/index.js',
-  watch: './src/server',
+  watch: './src/server,config.js,index.js',
   ext: 'js json hbs',
 });
 
