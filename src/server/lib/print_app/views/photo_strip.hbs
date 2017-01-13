@@ -1,29 +1,35 @@
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+  }
+
+  .photo-strip {
+    display: block;
+    margin: 0 auto;
+    width: 260px;
+  }
+
+  img {
+    box-sizing: border-box;
+    margin: 5px 5px 0;
+  }
+
+  .wicked {
+    font-size: 3em;
+    margin-top: 0.4em;
+    text-align: center;
+  }
+</style>
 <div class="photo-strip">
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-    }
-
-    .photo-strip {
-      display: block;
-      margin: 0 auto;
-      width: 260px;
-    }
-
-    img {
-      box-sizing: border-box;
-      margin: 5px 5px 0;
-    }
-
-    .wicked {
-      font-size: 3em;
-      margin-top: 0.4em;
-      text-align: center;
-    }
-  </style>
   {{#each photos}}
     <img src="{{../photoBase}}{{this.file_name}}" width="250">
   {{/each}}
-  <p class="wicked">{{bottomText}}</p>
+  <p class="wicked">
+    {{#if bottomImage}}
+      <img src="{{bottomImage}}" width="80%" />
+    {{else}}
+      {{#if bottomText}}<div>{{bottomText}}</div>{{/if}}
+    {{/if}}
+  </p>
 </div>

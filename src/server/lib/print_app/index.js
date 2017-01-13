@@ -11,6 +11,9 @@ printApp.engine('.hbs', expressHandlebars({
   extname: '.hbs',
   layoutsDir: path.join(viewBase, 'layouts'),
   partialsDir: path.join(viewBase, 'partials'),
+  helpers: {
+    json: obj => JSON.stringify(obj),
+  },
 }));
 printApp.set('view engine', '.hbs');
 

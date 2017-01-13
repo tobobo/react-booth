@@ -6,13 +6,14 @@ const exec = require('child_process').exec;
 
 const config = require('../../../config');
 const log = require('../lib/log_helper');
-const printApp = require('../lib/print_app/index');
+const DefaultController = require('../lib/print_app/controllers/default');
 
 const SERVER_PORT = config.port;
 const PHOTO_DIR = config.photoDir;
 const OPEN_PREVIEW = config.openPreview;
 const PRINT_FILE = config.printFile;
 const BOTTOM_TEXTS = ['¡wicked!', '2017', '1622', 'nice duds', 'many thanks', 'we <3 isaac'];
+// const BOTTOM_IMAGES =
 
 const printerAdapter = {
   getPhantom: _.memoize(() => phantom.create()),
@@ -39,22 +40,14 @@ const printerAdapter = {
   },
 
   generatePageHtml(photoFileNames) {
-    return new Promise((resolve, reject) =>
-      printApp.render('photo_strip', {
-        _locals: {
-          photoBase: `http://localhost:${SERVER_PORT}/${PHOTO_DIR}/thumbs/`,
-          photos: photoFileNames,
-          bottomText: BOTTOM_TEXTS[Math.floor(Math.random() * BOTTOM_TEXTS.length)],
-        },
-      }, (err, html) => {
-        if (err) {
-          log('err', err);
-          reject(err);
-        } else {
-          resolve(html);
-        }
-      })
-    );
+    return new DefaultController({
+      photoBase: `http://localhost:${SERVER_PORT}/${PHOTO_DIR}/thumbs/`,
+      photos: photoFileNames,
+      bottomText: BOTTOM_TEXTS[Math.floor(Math.random() * BOTTOM_TEXTS.length)],
+      bottomImage: path.join(__dirname, '../lib/print_app/assets/change_logo_bw.gif'),
+      assetKeys: ['bottomImage'],
+    })
+      .render();
   },
 
   generatePdf(page, pageHtml, photoFileNames) {
