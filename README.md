@@ -3,15 +3,23 @@
 ## Setup
 
 Install dependencies with apt-get or homebrew:
+
 `gphoto2`: http://phantomjs.org/
+
 `imagemagick`: https://www.imagemagick.org/script/index.php
+
 `phantomjs`: http://phantomjs.org/
 
+
 Install npm dependencies:
+
 `npm install`
 
+
 Run the server:
+
 `npm start`
+
 
 Future ideas:
 - Strip metadata
