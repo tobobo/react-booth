@@ -21,7 +21,7 @@ Run the server:
 `npm start`
 
 
-Future ideas:
+## Future ideas
 - Strip metadata
 - Detect orientation consistently
 - Auto-post to the internet?
