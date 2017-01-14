@@ -4,7 +4,7 @@
 
 Install dependencies with apt-get or homebrew:
 
-`gphoto2`: http://phantomjs.org/
+`gphoto2`: http://www.gphoto.org/
 
 `imagemagick`: https://www.imagemagick.org/script/index.php
 
